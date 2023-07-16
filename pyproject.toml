@@ -1,0 +1,24 @@
+[build-sytem]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'pypbireport'
+version = '0.1.1'
+authors = [
+    {name='Ismael Miranda', email='ismaelmiranda11@hotmail.com'}
+]
+description = 'Package to manipulate Power BI reports'
+readme = 'README.md'
+requires-python = '>=3.9'
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pandas >= 2"
+]
+
+#[project.urls]
+#Homepage = ''
