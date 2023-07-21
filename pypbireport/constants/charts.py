@@ -1,5 +1,5 @@
 '''
-Graphs
+Chart constants
 '''
 CHART_BAR = 'barChart'
 CHART_CLUSTERED_BAR = 'clusteredBarChart'
@@ -24,7 +24,4 @@ CARD = 'card'
 TABLE_PLAIN = 'tableEx'
 TABLE_PIVOT = 'pivotTable'
 
-'''
-Slicer an Navigator
-'''
 SLICER = 'slicer'

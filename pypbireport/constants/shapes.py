@@ -1,5 +1,6 @@
 '''
 Layout shapes
 '''
-SHAPE = 'basicShape'
+FRAMES = 'basicShape'
+LINES = 'shape'
 TEXT_BOX = 'textbox'

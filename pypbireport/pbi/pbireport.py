@@ -5,19 +5,16 @@ Python 3.11.3
 Developed by: Ismael Miranda
      E-mail : ismaelmiranda11@hotmail.com
 '''
-# import os
-# import sys
-# sys.path.append(os.path.dirname(os.getcwd()))
 
 import json
 import pandas as pd
 import copy
 
-from ..functions.functions import hex_code, get_str_dict, export_dict_as_file
+from ..functions.functions import hex_code, get_str_dict
 from ..constants.structures import *
 from ..constants import bookmarks
-from ..constants import charts
-from ..constants import shapes
+# from ..constants import charts
+# from ..constants import shapes
 
 from .pbifile import PBIXFile
 
@@ -28,6 +25,7 @@ class PBIReport(PBIXFile):
     def __init__(self, pbix_path:str) -> None:
 
         super().__init__(pbix_path=pbix_path)
+
         self.layout_pbi_dict = (
             json.loads
                 (
@@ -69,8 +67,8 @@ class PBIReport(PBIXFile):
     def __filter_page(self, page_name:str):
         '''
         Input:
-            page_name (str): Page name which want to retrive. Default '' value
-            retrive all pages.
+            page_name (str): Page name which want to retrieve. Default '' value
+            retrieve all pages.
         Output:
             page_filter_list (list): List of page filtered
 
@@ -91,7 +89,7 @@ class PBIReport(PBIXFile):
         Input:
             visual_id (str): The visual report id to get the page location.
         Output:
-            page_id (str):
+            page_id (str): The page that visual is in.
 
         Description:
             Return the page hexadecimal code of report which visual is in.         
@@ -114,11 +112,11 @@ class PBIReport(PBIXFile):
     def __create_a_bookmark_dict(self, bookmark_name:str, books_dict:list):
         '''
         Input:
-            bookmark_name (str):
-            books_dict (list): 
+            bookmark_name (str): The name of bookmark
+            books_dict (list): The configuration dict to create a bookmark
 
         Output:
-            name (type):
+            book_default_dict (dict): The bookmark dict.
 
         Description:
             This function use a default json layout for bookmark and put values 
@@ -168,7 +166,7 @@ class PBIReport(PBIXFile):
             )
             # print(visual_book_dict)
             
-            # Update the exemplo key in defalut dict
+            # Update the exemplo key in default dict
             (
                 book_default_dict
                 .get('explorationState')
@@ -209,61 +207,51 @@ class PBIReport(PBIXFile):
     '''
     def resume_report_pages(self):
         '''
-        WIP
-        Extract information from pages.
-        Indicates the postion (ordinal) and name (displayName) in report.
-        '''
-        '''
         Input:
-            var1 (type):
-            var2 (type): 
+            None 
 
         Output:
-            name (type):
+            info_dict (dict): A dict with page position, display name and 
+            hexadecimal code.
 
-        Description:
-            
+        Description: 
+            Extract information from pages. Indicates the position (ordinal)
+            and name (displayName) in report. 
         '''
         self.__list_pages()
         info_dict = {}
 
         for page_dict in self.pages_list:
-            positon = page_dict.get('ordinal')
+            position = page_dict.get('ordinal')
             display_name = page_dict.get('displayName')
             name = page_dict.get('name')
             
-            info_dict.update({positon: [display_name,name]})
+            info_dict.update({position: [display_name,name]})
 
         # TODO: Put this in a dataframe
         
         return info_dict
 
-    def resume_report_visuals(self, page_name : str ='', as_pd_dataframe : bool = True):
-        '''
-        WIP 
-        Arguments
-        Input:
-            page_name (optional): name of page which wants visuals
-        Output:
-            info_dict: a python dict with page names and visual informations
-        Description: 
-            WIP
-        '''
+    def resume_report_visuals(self, page_name : str ='', 
+                              as_pd_dataframe : bool = True):
         '''
         Input:
-            var1 (type):
-            var2 (type): 
+            page_name (str): The page name that desire retrieve visuals of. 
+            as_pd_dataframe (bool): If False, it will return a dict instead of
+            a pandas dataframe.
 
         Output:
-            name (type):
+            _df (dataframe) | info_dict (dict): The output depends on as_pd_dataframe
+            value. The default return is _df.
 
         Description:
-            
+            For default, return a pandas dataframe of information on visuals in
+            report.
         '''
         self.__list_pages()
 
-        # Colhendo a lista de visuais de cada página
         info_dict = {} # page is the key, list of visuals are the values
+
         for page in self.__filter_page(page_name):
             pagename_ = page.get('displayName')
             pageid_ = page.get('name')
@@ -378,17 +366,16 @@ class PBIReport(PBIXFile):
                     .get('mode', 'show')
                 )
 
-                # if name_ == '65e4b299da705d515c2a':
                 visual_info_dict = {
-                        'py_tag':''
-                        ,'visualid':visual_id_
+                        # 'py_tag':''
+                        'visualid':str(visual_id_)
                         ,'type':type_
                         ,'displaymode':displaymode_
                         ,'position':position_
                         ,'size':size_
-                        ,'tile':title_
+                        ,'title':title_
                         ,'subtitle':subtitle_
-                        ,'fields':fields_                  
+                        ,'fields':fields_
                         ,'groupname':group_name_
                         ,'groupid':group_id_
                         ,'pagename':pagename_
@@ -427,22 +414,15 @@ class PBIReport(PBIXFile):
     
     def resume_report_bookmarks(self):
         '''
-        Bookmarks são uma lista
-        A lista pode conter grupos de bookmarks ou bookmarks individuais,
-        o campo children determina se é grupo ou é individual.
-        explorationState sections ID_PAGINA visualContainers DA PAGINA
-        As keys desse caminho entregam quais visuais o bookmark interage.
-        Isso somente dentro dos bookmarks individuais.
-        '''
-        '''
         Input:
-            var1 (type):
-            var2 (type): 
+            None 
 
         Output:
-            name (type):
+            info_dict (dict): Dict with bookmark information
 
         Description:
+            Work in progress, this function will be more accurate in next 
+            version. The returned values at moment are nonsense. 
             
         '''
         info_dict = {}
@@ -451,7 +431,7 @@ class PBIReport(PBIXFile):
         config_str = self.layout_pbi_dict.get('config') # é um string
         config_dict = json.loads(config_str)
         # Get the list of bookmarks
-        books_list = config_dict.get('bookmarks')
+        books_list = config_dict.setdefault('bookmarks',[])
 
         # Some of bookmarks in the list are actually groups of bookmarks
         grouped_books_list = []
@@ -463,9 +443,8 @@ class PBIReport(PBIXFile):
                 individual_books_list.append(book_dict)
 
         # For each group, get the bookmarks
-        grupos = []
         for group_dict in grouped_books_list:
-            # Each group of bookmarks has childrens
+            # Each group of bookmarks has children
             group_name = group_dict.get('displayName')
             group_id = group_dict.get('name')
             children_list = group_dict.get('children')
@@ -478,9 +457,6 @@ class PBIReport(PBIXFile):
 
                 children_pages_visuals_info_dict = {}
                 for page in child_pages_dict:
-                    # page will be the keys of child_pages_dict
-                    # Each page has a dict named 'visualContainers', which keys
-                    # are visuals ids TODO: CHECAR ISSO AQUI!
                     visuals_list = ( 
                         list ( 
                             child_pages_dict
@@ -507,7 +483,6 @@ class PBIReport(PBIXFile):
                 }
                 )
 
-        # Para os individuais, vai ser eles mesmos
         for individual in individual_books_list:
             book_name = individual.get('displayName')
             book_pages_dict = individual.get('explorationState').get('sections')
@@ -540,32 +515,20 @@ class PBIReport(PBIXFile):
     Get methods.
     
     These methods allow to capture parts of layout dict as dict. 
-    So, all modification done in returned varibles will be reflected in report
+    So, all modification done in returned variables will be reflected in report
     after run dumps_changes().
     '''
     def get_report_visuals(self, visual_id: str | list)-> list:
         '''
-        WIP
-        Input: 
-            visual_id: The visual id in report. 
-                       Use resume_report_visuals() to see available options.
-        Description
-            Returns the visual dict in layout json.
-            This allows modify visual in page.
-            All modification in returned dict will be reflected in report
-            after dump made. 
-        
-        '''
-        '''
         Input:
-            var1 (type):
-            var2 (type): 
+            visual_id (str or list): The hexadecimal of visual(s). 
 
         Output:
-            name (type):
+            visuals_list (list): A list of visual dict in layout dict.
 
         Description:
-            
+            Get the dict of a visual of report. All modification in this dict
+            will be reflected in report after save changes.
         '''
         if isinstance(visual_id, str):
             _visual_list = [visual_id]
@@ -586,31 +549,31 @@ class PBIReport(PBIXFile):
 
     These methods create report objects in dict forms. 
     The default returns of these methods are id and dict, witch should be
-    insert into report through intertion methods.
+    insert into report through insertion methods.
     '''
     def create_group_of_bookmarks(self, 
         group_name:str,
         book_group_config_dict:dict
         ):
         '''
-        WIP
         Input:
             group_name (str): Name of bookmark group
 
-            book_group_config_dict: a dict with pattern 
+            book_group_config_dict (dict): A dict with pattern 
                 {   
-                    'bookmar_name_1': {
+                    'bookmark_name_1': {
                             ppr.bookmark.SHOW: [list of visual ids to show],
-                            ppr.bookmark.HIDE: [list of visual ids to hide],
+                            ppr.bookmark.HIDE: [list of visual ids to hide]
                         },
                     ...
-                    'bookmar_name_n': {
+                    'bookmark_name_n': {
                             ppr.bookmark.SHOW: [list of visual ids to show],
-                            ppr.bookmark.HIDE: [list of visual ids to hide],
+                            ppr.bookmark.HIDE: [list of visual ids to hide]
                         }
                 }
         Output:
-            bookmark_group_dict
+            _id_ (str): A hexadecimal value for created bookmark group.
+            _dict_ (dict): The dict of bookmark group.
         
         Description:
             Each key of bookmark_names_and_visual dict will be the name of 
@@ -620,8 +583,14 @@ class PBIReport(PBIXFile):
             in bookmark_names_and_visual
             For example:
                 bookmark_names_and_visual = {
-                    'Show column graph':['columngraphid', 'columngraphidtitleid'],
-                    'Show bar graph':['bargraphid', 'bargraphidtitleid']
+                    'Show column graph': {
+                            ppr.bookmark.SHOW: ['columngraphid','columngraphidtitleid'],
+                            ppr.bookmark.HIDE: ['bargraphid', 'bargraphidtitleid']
+                        },
+                    'Show bar graph': {
+                            ppr.bookmark.SHOW: ['bargraphid', 'bargraphidtitleid'],
+                            ppr.bookmark.HIDE: ['columngraphid','columngraphidtitleid']
+                        }
                 }
                 It will create two bookmarks in report:
                     1. Show column graph: this will show 'columngraphid', 
@@ -631,28 +600,14 @@ class PBIReport(PBIXFile):
                        'bargraphidtitleid' and hide 'columngraphid', 
                        'columngraphidtitleid'
         '''
-        '''
-        Input:
-            var1 (type):
-            var2 (type): 
-
-        Output:
-            name (type):
-
-        Description:
-            
-        '''
         
         # Transform the config string object into dict object
         # Get the list of bookmarks. At final, this list needed to be appended
         # with new group
                     
-        # With tag_dict, create the dict of bookmark to append in books_list
         # As this a group will be created, first, create individualy each
         # bookmark to, so, create a bookmark group.
         
-        # Transform bookmark_names_and_visual in a dict with visual, bookmar 
-        # keys
         bookmark_list = []
         books_dict = {}
         for bookmark_name in book_group_config_dict:
@@ -706,22 +661,21 @@ class PBIReport(PBIXFile):
 
     def create_bookmark_slicer(self, ppr_bookmark_or_group:tuple):
         '''
-        WIP
-        '''
-        '''
         Input:
-            var1 (type):
-            var2 (type): 
+            ppr_bookmark_or_group (tuple): A tuple of __id__ and __dict__ from
+            a bookmark group created with this class.
 
         Output:
-            name (type):
+            _id_ (str): A hexadecimal value for created bookmark slicer.
+            _dict_ (dict): The dict of bookmark slicer.
 
         Description:
-            
+            For a bookmark group created, this create a bookmark slicer or 
+            bookmark navigator for report. 
         '''
         bookmark_slicer_dict = BOOKMARK_SLICER_DICT
         
-        # 1. Assemble the condig dict
+        # 1. Assemble the dict
         _visual_id = hex_code()
 
         bookmark_slice_config_dict = BOOKMARK_SLICER_CONFIG_DICT
@@ -766,37 +720,22 @@ class PBIReport(PBIXFile):
         _id_, _dict_ = _visual_id, bookmark_slicer_dict
 
         return _id_, _dict_
-    
+
     def create_duplicate_page(self, page_name='Capa') -> None:
         '''
-        TODO: change all ids in visual containers!
-        WIP
         Input:
-            displayName: Name in report to create a copy
-        Output_
-        Description:
-            Sections contém uma list de dicts que representam as páginas.
-            Para duplicar uma nova página no report, basta fazer um append de
-            um dict que já existe dentro da lista de section.
-            Esse processo é feito no próprio JSON de layout carregado.
-        '''
-        '''
-        Input:
-            var1 (type):
-            var2 (type): 
+            page_name (str): The page to duplicate.
 
         Output:
-            name (type):
+            None
 
         Description:
-            
+            Work in progress, this function will be more accurate in next 
+            version. The duplicated visuals should have ids changed. 
         '''
                 
-        # Dentro de de páginas, retornar o dict que se deseja copiar
         page_to_duplicate_dict = self.__filter_page(page_name)[0]
         
-        # Criar a página ao lado da original. Para isso, é necessário atualizar
-        # os ordinals
         for page_dict in self.pages_list :
             ordinal_to_copy = page_to_duplicate_dict.get('ordinal')
             if page_dict.get('ordinal') > ordinal_to_copy:
@@ -805,12 +744,9 @@ class PBIReport(PBIXFile):
                         'ordinal': page_dict.get('ordinal') + 1
                     })
 
-        # Agora, é necessário atualizar alguns valores.
-        # name, displayName, ordinal precisam ser atualizados
-
         copy_of_page_dict = page_to_duplicate_dict.copy()
         copy_name = hex_code('ReportSection')
-        copy_displayname = copy_of_page_dict.get('displayName') + ' py copy'
+        copy_displayname = copy_of_page_dict.get('displayName') + ' ppr copy'
         copy_ordinal = copy_of_page_dict.get('ordinal') + 1
         # Update values in copy
         copy_of_page_dict.update(
@@ -833,20 +769,21 @@ class PBIReport(PBIXFile):
     Insertion methods.
 
     All visual or bookmarks created in class should be insert into layout dict.
-    Just the objetcs inserted through theses methos will reflected in report
+    Just the objects inserted through theses method will reflected in report
     after save_changes runs.
     '''
     def insert_visual_in_page(self, page_name:str, ppr_visual:tuple):
         '''
         Input:
-            page_name (type):
-            visual (type): 
+            page_name (str): The page name where the visual will be.
+            ppr_visual (tuple): A tuple of __id__ and __dict__ from a visual
+            created with this class.
 
         Output:
-            name (type):
+            None
 
         Description:
-            
+            Insert a visual in a page.
         '''
         page_dict = self.__filter_page(page_name=page_name)[0]
 
@@ -858,11 +795,11 @@ class PBIReport(PBIXFile):
 
         return None
     
-    def insert_bookmark_in_page(self, bookmark:tuple):
+    def insert_bookmark_in_page(self, ppr_bookmark:tuple):
         '''
         Input:
             bookmark (tuple): a tuple with (id, dict) of a bookmark create 
-            in classe.
+            in class.
         Output:
             None
 
@@ -870,13 +807,12 @@ class PBIReport(PBIXFile):
             Insert a created bookmark.
         '''
 
-        config_str = self.layout_pbi_dict.get('config') # é um string
+        config_str = self.layout_pbi_dict.get('config') 
         config_dict = json.loads(config_str)
-        report_books_list = config_dict.get('bookmarks')
 
-        report_books_list.append(bookmark[1])
+        report_books_list = config_dict.setdefault('bookmarks',[])
+        report_books_list.append(ppr_bookmark[1])
 
-        # Voltar para o string do config
         self.layout_pbi_dict.update(
             {
                 'config':json.dumps(config_dict)
@@ -895,11 +831,13 @@ class PBIReport(PBIXFile):
         '''
         Input:
             None 
+
         Output:
             None
+
         Description:
             Consolidate all changes made through classes methods in layout dict.
-            This should run before sabe report to report reflect changes.
+            This should run before save_report() to report reflect changes.
         '''
         self.layout_pbi_str = json.dumps(self.layout_pbi_dict)
         
@@ -920,7 +858,7 @@ class PBIReport(PBIXFile):
             Consolidate the report layout_dict input in a new PBIX file.
         '''
 
-        # Garantee that all changes are in layout dict
+        # Guarantee that all changes are in layout dict
         self.save_changes()
 
         return super().save_report(layout_dict = self.layout_pbi_str, 

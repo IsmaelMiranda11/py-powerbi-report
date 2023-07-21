@@ -1,13 +1,12 @@
 '''
+version 0.1
 Python 3.11.3
+
 Developed by: Ismael Miranda
      E-mail : ismaelmiranda11@hotmail.com
 
- "I choose a lazy person to do a hard job. Because a lazy person will find an easy way to do it.", Bill Gates.
- Yeah, I was so lazy on build PBI report.
-
- Features:
-    Use class PBIXReport to:
+Features:
+    Use class PBIReport to:
         1. Read layout json as a Python dictionary
         2. Resume pages, visuals and bookmarks in report
         3. Create groups of bookmarks with desired configurations
@@ -16,6 +15,8 @@ Developed by: Ismael Miranda
         6. Duplicate a page
         7. Save changes as a new report
 '''
+
+__version__ = '0.1'
 
 import os 
 import sys
@@ -26,3 +27,4 @@ from .pbi.pbireport import PBIReport
 from .constants import bookmarks
 from .constants import charts
 from .constants import shapes
+from .functions.functions import export_dict_as_file

@@ -29,13 +29,15 @@ class PBIXFile():
             .replace(".pbix", '')
         ) # return name of original pbix file
         
-        # Open the pbix file as a compressed file
+        self.__open_pbix_file()
+        
+    def __open_pbix_file(self):
+        # Open the pbix file
         self.pbix = zipfile.ZipFile(
-            file= pbix_path, 
+            file= self.pbix_path, 
             compression = zipfile.ZIP_DEFLATED 
             )
-        
-    
+
     def extract_layout_and_encoding(self):
         '''
         Input:
@@ -51,9 +53,7 @@ class PBIXFile():
             layout_content = codecs.decode(content, 'utf-16-le')
         return layout_content
 
-    def save_report(self, 
-        layout_dict:str, 
-        replace_original:bool=False, 
+    def save_report(self, layout_dict:str, replace_original:bool=False, 
         suffix:str='ppr_out'
         ):
         '''
@@ -62,7 +62,7 @@ class PBIXFile():
             replace_original (bool): If is true, the original report will be 
             replaced for a report with modification. Important: the original 
             file should be closed.
-            suffix (str): You might want a suffix to reports create by module. 
+            suffix (str): You might want a suffix to report create by module. 
             The default is ppr_out.
         Output:
             None
@@ -70,6 +70,8 @@ class PBIXFile():
         Description:
             Consolidate the report layout_dict input in a new PBIX file.
         '''
+        # Garantee that file is open in memory
+        self.__open_pbix_file()
 
         # 1. Create a temporary file in folder then closes it.
         t_file, t_name = (
@@ -96,7 +98,7 @@ class PBIXFile():
                 if not file.filename in no_to_copy:
                     temp_zip.writestr(file, pbix_file.read(file.filename))
 
-        # 3. Put the layout dict modified in.
+        # 3. Put the layout dict modified in
         with zipfile.ZipFile(file=t_name, 
             mode='a', 
             compression=zipfile.ZIP_DEFLATED
