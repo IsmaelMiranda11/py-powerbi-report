@@ -673,12 +673,23 @@ class PBIReport(PBIXFile):
             For a bookmark group created, this create a bookmark slicer or 
             bookmark navigator for report. 
         '''
-        bookmark_slicer_dict = BOOKMARK_SLICER_DICT
+        bookmark_slicer_dict = copy.deepcopy(BOOKMARK_SLICER_DICT)
         
         # 1. Assemble the dict
         _visual_id = hex_code()
 
-        bookmark_slice_config_dict = BOOKMARK_SLICER_CONFIG_DICT
+        bookmark_slice_config_dict = copy.deepcopy(BOOKMARK_SLICER_CONFIG_DICT)
+        
+        # Name
+        (
+            bookmark_slice_config_dict
+            .update(
+                {
+                    'name':_visual_id
+                }
+            )
+        )
+        # Layout
         (
             bookmark_slice_config_dict
             .get('layouts',[{}])
@@ -695,7 +706,7 @@ class PBIReport(PBIXFile):
                 }
             )
         )
-        
+        # Bookmarkgroup
         (
             bookmark_slice_config_dict
             .get('singleVisual',{})

@@ -6,6 +6,7 @@
   - [Features](#features)
   - [Use case](#use-case)
   - [Licensing and Author](#licensing-and-author)
+  - [Versions](#versions)
 
 
 ## Installation and use
@@ -149,3 +150,8 @@ Be free to use this module in your Power BI development and don't hesitate to co
 
 Ismael Miranda  
 <ismaelmiranda11@hotmail.com>
+
+## Versions
+
+0.1 - Release
+0.1.1 - Bug fix in create_bookmark_slicer() function
