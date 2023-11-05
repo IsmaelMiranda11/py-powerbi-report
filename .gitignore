@@ -2,17 +2,18 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+requirements.txt
 # C extensions
 *.so
 
 tests
 
+dist/
+
 # Distribution / packaging
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/

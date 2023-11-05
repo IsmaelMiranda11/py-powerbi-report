@@ -1,6 +1,4 @@
-'''
-version 0.1
-Python 3.11.3
+'''pypbireport version 0.3
 
 Developed by: Ismael Miranda
      E-mail : ismaelmiranda11@hotmail.com
@@ -16,15 +14,47 @@ Features:
         7. Save changes as a new report
 '''
 
-__version__ = '0.1'
+__version__ = '0.3'
 
 import os 
 import sys
 sys.path.append(os.path.dirname(__file__))
 
-from .pbi.pbireport import PBIReport
+from .pbi.pbifile import (
+    PBIXFile
+)
 
-from .constants import bookmarks
-from .constants import charts
-from .constants import shapes
+from .pbi.pbireport import (
+    PBIReport,
+    Visual,
+    Bookmark,
+    BookmarkGroup
+)
+
+from .pbi.pbibookmark import (
+    Bookmark,
+    BookmarkGroup
+)
+
+from .pbi.pbimodel import (
+    PBIModel,
+    Measure,
+    Column,
+    Table
+)
+
+from .pbi.pbivisual import (
+    Visual
+)
+
+from .pbi import template_visuals
+
+from .constants import (
+    bookmarks,
+    charts,
+    shapes,
+    dax_code
+)
+
 from .functions.functions import export_dict_as_file
+from .functions.pprlist import PPRList
