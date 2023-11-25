@@ -5,7 +5,7 @@ __pycache__/
 requirements.txt
 # C extensions
 *.so
-
+Dashboard Retenção.pbix
 tests
 
 dist/

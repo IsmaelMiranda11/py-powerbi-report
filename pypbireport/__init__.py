@@ -25,10 +25,12 @@ from .pbi.pbifile import (
 )
 
 from .pbi.pbireport import (
-    PBIReport,
+    PBIReport
+)
+
+from .pbi.pbivisual import (
     Visual,
-    Bookmark,
-    BookmarkGroup
+    create_new_visual
 )
 
 from .pbi.pbibookmark import (
@@ -42,12 +44,6 @@ from .pbi.pbimodel import (
     Column,
     Table
 )
-
-from .pbi.pbivisual import (
-    Visual
-)
-
-from .pbi import template_visuals
 
 from .constants import (
     bookmarks,

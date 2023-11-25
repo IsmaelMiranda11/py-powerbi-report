@@ -5,13 +5,13 @@ import json
 import pandas as pd
 import copy
 
-from ..functions.functions import hex_code, get_str_dict
+from ..functions.functions import hex_code
 from ..functions.pprlist import PPRList
 from ..constants.structures import *
 from ..constants import bookmarks
 
 from .pbifile import PBIXFile
-from .pbivisual import Visual
+from .pbivisual import *
 from .pbibookmark import Bookmark, BookmarkGroup
 
 
@@ -87,7 +87,9 @@ class PBIReport(PBIXFile):
             visuals_list = PPRList()
             
             for visual_dict in page.get('visualContainers', {}):
-                visual = Visual(visual_dict, page_name, page_id)
+                visual = VisualInitializer(
+                    Visual(visual_dict, page_name, page_id)
+                )
                 self.visuals.append(visual)
                 visuals_list.append(visual)
             
@@ -604,5 +606,3 @@ class PBIReport(PBIXFile):
                                    suffix=suffix,
                                    file_name=file_name,
                                    open_file=open_file)
-        
-        

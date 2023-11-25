@@ -3,120 +3,122 @@
 '''
 import json
 import copy
-import re
 from jsonpath_ng.ext import parse
+from typing import Literal, Any
 
-from typing import Literal
-
-from ..functions.functions import hex_code
-from ..constants.structures import *
+from ..functions.functions import (export_dict_as_file, 
+    set_attrs_name_visual, hex_code)
+from ..constants import structures
 from ..constants import charts
-from ..functions.pprlist import PPRList
 
 from .pbimodel import Measure
 
+from ..visuals.preset_attrs import pre_set, pre_set_fields
 
-class Visual(object):
-    '''Class to represent a visual in PBI.
+from ..visuals.visuals_attrs import attributes_visual_dict
 
-    Two types of input are accepted: dict or string.
-    If dict, it must be a visual dict from report layout dict.
-    If string, it must be a visual type from VISUAL_TEMPLATE_DICT.
+class VisualAttributes():
+    '''Class of all atributes of a Visual.
+
+    This object gather all visual JSON path, as its values.
+    For this, parse of jsonpath_ng libary is used to find all internal path,
+    desconsidering `dict` and `list` objects.
+    The full path is tranformed in a valid attribute name and along with value
+    and original full path they are record inside a dictionary.
+
+    Args:
+        visual_dict (dict): A Power BI visual dictionary.
+
+    Attributes:
+        attributes_dict (dict): A dictionary with all visual path and its value.
+    '''
+
+    def __init__(self, visual_dict:dict) -> None:
+        
+        contexts = parse('$..*').find(visual_dict) # find all path of JSON
+
+        valid_contexts = [context for context in contexts
+            if isinstance(context.value, (dict, list)) ] # no dict or list
+
+        attrs_names = [ set_attrs_name_visual(str(context.full_path))
+            for context in valid_contexts ] 
+
+        attrs_values = [ context.value for context in valid_contexts ] 
+        
+        full_paths = [ str(context.full_path) for context in valid_contexts ]
+
+        self.attributes_dict:dict = {}
+
+        for (name, value, path) in zip(attrs_names,attrs_values,full_paths):
+            # Put information into the dict
+            self.attributes_dict.update(
+                { name: {'attr_value': value, 'full_path': path} } )
+            # Set attribute for the object
+            object.__setattr__(self, name, value)
+
+class Visual():
+    '''Class to represent a visual of Power BI.
+
+    A Power BI visual is represented by a JSON or a dictionary in python. They
+    are hold in `visualContainers` key of each page in report layout JSON.
+    From visual dictionary, it is possible to set a bunch of proprities, such 
+    as vertical and horizontal positions, as well the measure field.
+    The visual dictionary structure is based in some other dictionary represent 
+    by keys like `config`, `query` and `dataTranforms`. After serialization
+    of visual dictionary, these came as strings and they should be processed 
+    before extract or modify any content.
+    Note:
+        As a disclaimer, all the work done here is just a reverse engineering 
+            of what Power BI design results. It is totally normal erros occurs
+            and some features being implemented by another way.
+
+    Args:
+        visual_dict (dict): The dictionary that represent a Power BI visual
+        page_name (str | None, optional): The page where the visual is placed. 
+            It can be None, for new visuals. Defaults to ''.
+        page_id (str | None, optional): The heximadecimal id page value. 
+            Defaults to ''.
+
+    Attributes:
+        original_visual (dict): The original JSON format before any 
+            tranformation of the visual.
+        visual (dict): The dictionary that represent the visual.
+        page_name (str): The page name where the visual is placed.
+        page_id (str): The hexadecimal page value where the visual is placed.
+        config (dict): Dictonary that represents config of the visual. Hold a 
+            great part of visual display configurations, such as position.
+        query (dict): Dictonary that represents query that are done of visual 
+            display data. 
+        dataTransforms (dict): Dictonary with configuration of data 
+            tranformation of the visual.
+        filters (dict): Dictonary with filters applied to the visual.
+        id (str): Hexadecimal value that represent the visual. It should be
+            unique in a report.
+        horizontal (float): The x position of the visual in a page.
+        vertical (float): The y position of the visual in a page.
+        height (float): The height of the visual.
+        width (float): The width of the visual.
+        visual_type (str): The Power BI type of the visual.
+        tab_order (str):  The layer order of the visual in a page.
+        all_attributes (VisualAttibutes): ViusalAttributes object of the visual.
+            This contains all possible attributes inside the visual dictionary.
+            It is generated by parsing of path of dict.
 
     '''
-    # Propeties of visual and its path inside dict
-    dict_attrs_path = {
-        'id': ['config', 'name'],
-        'x': ['config', 'layouts','position','x'],
-        'y': ['config', 'layouts','position','y'],
-        'height': ['config','layouts','position','height'],
-        'width': ['config','layouts','position','width'],
-        'type_': ['config','singleVisual','visualType'],
-        'title': ['config','singleVisual', 'vcObjects', "title", "properties", "text", "expr","Literal", "Value"],
-        'title_align': ['config','singleVisual', 'vcObjects', "title", "properties", "alignment",  "expr", "Literal", "Value"],
-        'title_fontsize': ['config','singleVisual', 'vcObjects', "title", "properties", "fontSize", "expr", "Literal", "Value"],
-        'font_size': ["config", "singleVisual", "objects", "labels", "properties", "fontSize", "expr", "Literal", "Value"],
-        'format_conditional': ['config','singleVisual', 'objects', "labels", "properties",'color', 'solid', 'color', 'expr', 'Measure', 'Property'],
-        'measure': ['config','singleVisual', 'projections', "Values", "queryRef"],
-        'fc_card': ['config', 'singleVisual', 'objects', "labels", "properties",'color', 'solid','color', 'expr', 'Measure', 'Property'],
-        'field_card': ['config','singleVisual','projections','Values','queryRef'],
-        'field_y_column': ['config', 'singleVisual', 'projections', 'Y', 'queryRef'],
-        'field_category_column_n1': ['config', 'singleVisual', 'projections', 'Category', 'queryRef'],
-        'field_category_column_n2': [''],
-        'field_slicer': ['config','singleVisual','projections','Values','queryRef'],
-        'bookmark_group': ['config', 'singleVisual','objects','bookmarks','properties','bookmarkGroup','expr','Literal','Value']
-    }
- 
-    dict_mod_path = {
-        'x': [['x']],
-        'y': [['y']],
-        'height': [['height']],
-        'width': [['width']],
-        'font_size': [['dataTransforms', 'objects', 'labels', 'properties', 'fontSize', 'expr', 'Literal', 'Value']]
-    }
-
-    dict_fields = {
-        'field_card': {'table': 'Métricas', 'field': 'Categorica'}, 
-        'fc_card': {'table': 'Reporting Layout', 'field': 'Formatação Condicional'},
-        'field_y_column': {'table': 'Métricas', 'field': 'Categorica'},
-        'field_category_column_n1': {'table': 'Calendário', 'field': 'Ano Ciclo'},
-        'field_category_column_n2': {'table': 'Calendário', 'field': 'Data'},
-        'field_slicer': {'table': 'Campanhas', 'field': 'Tipo de Campanha'},
-    }
 
     def __init__(self, 
-        visual_dict: dict | Literal['card', 'column', 'slicer_drop', 
-            'slicer_list', 'bookmark_slicer'], 
+        visual_dict: dict, 
         page_name: str | None ='',
-        page_id: str | None = '',
-        custom_template_visual_dict: dict | None = None 
+        page_id: str | None = ''
     ) -> None:
-        '''__init__ doc'''
-        # self.id = ''
-        # self.x = 0
-        # self.y = 0
-        # self.height = 0
-        # self.width = 0
-        # self.type_ = None
-
-        # If input is a string, it must be a visual type from VISUAL_TEMPLATE_DICT
-        if visual_dict in ['card', 'column', 'slicer_drop', 'slicer_list', 'bookmark_slicer']:
-            if custom_template_visual_dict:
-                _visual_dict = copy.deepcopy(custom_template_visual_dict)
-            else:
-                _visual_dict = copy.deepcopy(
-                    charts.VISUAL_TEMPLATE_DICT.get(visual_dict, {})
-                )
-            
-            # Assign a new hex code
-            ( 
-                _visual_dict
-                .update(
-                    {
-                        'config':json.loads(_visual_dict['config'])
-                    }
-                )
-            )
-            (
-                _visual_dict
-                .get('config', {})
-                .update(
-                    {
-                        'name':hex_code()
-                    }
-                )
-            )
-            
-        elif isinstance(visual_dict, dict):
-            # If input is a dict, it must be a visual dict from report layout dict
-            _visual_dict = visual_dict
-        else:
+        # If input is a dict, it must be a visual dict from report layout dict
+        if not isinstance(visual_dict, dict):
             raise ValueError("It must be a dict as input")
 
-        # Deepcopy just in case, for existing visuals
-        self.original_visual = copy.deepcopy(_visual_dict)
+        # Deepcopy
+        self.original_visual = copy.deepcopy(visual_dict)
         # Get visual dict
-        self.visual = _visual_dict
+        self.visual = visual_dict
             
         # Page name
         self.page_name = page_name
@@ -126,205 +128,573 @@ class Visual(object):
         self.config = self.visual.get('config', "{}")
         self.query = self.visual.get('query', "{}")
         self.dataTransforms = self.visual.get('dataTransforms', "{}")
+        self.filters = self.visual.get('filters', "{}")
         
-        # Setting all properties as attributes
-        # Here, all of attributes are setted as indicated in dict_attrs_path
-        for attrs in self.dict_attrs_path:
-            (
-                object
-                .__setattr__(
-                    self, 
-                    attrs, 
-                    self.__get_dict_path_value(self.dict_attrs_path[attrs])
-                )
-            )
+        # These are preset attributes of any Visual
+        self.id:str
+        self.horizontal:float
+        self.vertical:float
+        self.height:float
+        self.width:float
+        self.visual_type:str
+        self.tab_order:int
+
+        # Set of attributes. Note:
+        # There are two type of attributes, 'normal' and field attributes.
+        # Fields attributes are special because great part of its update
+        # depends of modifing a bunch of JSON path inside visual dictionary.
+        # Because of this, the two types of attributes are setted with 
+        # different kind of functions.
         
+        # Preset of attributes should be collected by JSON path
+        for attr_name, attr_dict in pre_set.items():
+            full_path = attr_dict.get('full_path', [])
+            # For setting, only the `0`
+            object.__setattr__(self, attr_name, self._get_value(full_path[0])) 
+
+        # Preset of fields attributes should be collected by JSON path
+        for attr_name, attr_dict in pre_set_fields.items():
+            full_path = attr_dict.get('full_path', [])
+            object.__setattr__(self, attr_name, self._get_value(full_path[0]))
         
-            
+        # Parse all paths inside the visual dict with a proper class.
+        object.__setattr__(self, 'all_attributes', 
+            VisualAttributes(self.visual))
+        
+    
+    def _set_dict_attrs(self, __name:str, __value:Any) -> None:
+        '''Setter method for dict attributes for visual
+
+        The attributes `config`, `query`, `dataTranforms` and `filters` came 
+        as string represention of JSON. This method parse these strings to
+        dict objects and update the visual dictionary with its.
+
+        Args:
+            __name (str): The name of attribute
+            __value (Any): The value for the attribute
+
+        '''
+        if isinstance(__value, str):
+            dict_value = json.loads(__value) #convert to dict
+        else:
+            dict_value = __value 
+        # Set attribute of the object
+        object.__setattr__(self, __name, dict_value )
+        # Update the visual dict
+        object.__getattribute__(self,'visual').update({ __name: dict_value } )
+
+        return None
+
+    def _set_attrs(self,__name:str, __value:Any) -> None:
+        '''Setter method for normal attributes for the visual
+
+        The normal attributes are those that have a list of paths to update its
+        values. That means that one attribute is present in differents places
+        inside visual dictionary.
+        This method set the attribute value for the attribute name and for all
+        dictionary keys inside paths list.
+
+        Args:
+            __name (str): The name of attribute
+            __value (Any): The value for the attribute
+        '''
+
+        attr_dict = pre_set.get(__name, {}) #dictionary of that attribute
+        paths = attr_dict.get('full_path',[]) #list of paths
+        
+        # Update the paths
+        for path in paths:
+            self._update_value(path=path, new_value=__value)
+        
+        # Set the attribute of the object, beside for the paths
+        object.__setattr__(self, __name, __value)
+
+
+    def _set_attrs_fields(self,__name:str, __value:Any) -> None:
+        '''Setter method for fields attributes for the visual
+
+        The fields attributes have a special characteristc where their values 
+        follow the format of `Table.NameField`. Within the visual dictionary, 
+        different keys have this qualified name, while others have only `Table`
+        , and yet others have only `NameField`.
+        This method updates all paths for these three values using the 
+        attribute dictionary, which contains each of the three paths.
+
+        Args:
+            __name (str): The name of attribute
+            __value (Any): The value for the attribute
+
+        '''
+
+        # For those attributes, if input is a PBIModel.Measure type,
+        # extract values from input and set values
+        if not isinstance(__value, Measure.__bases__):
+            raise ValueError("The input should be a Measure")
+        
+        # Measure type delivery Table.NameField pattern
+        qualified_name = __value
+        field_name = qualified_name.split('.')[1]
+        table_name = qualified_name.split('.')[0]
+        
+        # For those attributes, get the chain of dict path
+        # and replace the template value for input value
+        attr_dict = pre_set_fields.get(__name, {})
+        paths = attr_dict.get('full_path',[]) #paths for that value
+        field_paths = attr_dict.get('field',[]) #for NameField
+        table_paths =attr_dict.get('table',[]) #for Table
+        qualified_paths =attr_dict.get('qualified',[]) # for Table.NameField
+        
+        # Run for each list of paths
+        for path in paths:
+            self._update_value(path=path,new_value=__value)
+        for path in field_paths:
+            self._update_value(path=path,new_value=field_name)
+        for path in table_paths:
+            self._update_value(path=path,new_value=table_name)
+        for path in qualified_paths:
+            self._update_value(path=path,new_value=qualified_name)
+
+        # Set the attribute of the object, beside for the paths
+        object.__setattr__(self, __name, __value)
+
+        return None
+
+
     def __setattr__(self, __name, __value):
+        '''Modified to manipulate dictionary keys updating
         '''
-        Using object to manipulate some behavoir of visual atributes
-        '''
-        # Loads strings in layout dict as a dict
-        # When save_report is used, the method dump_dicts is called to dump
-        # as string again
 
-        # For these three attributes, convert to dict, since it is a string in
-        # original dict. 
-        # This only matters when a new visual is created!
-        if __name in ['config', 'query', 'dataTransforms']:
-            # 1. Convert to dict
-            if isinstance(__value, str):
-                dict_value = json.loads(__value)
-            else:
-                dict_value = __value                
-            # 2. Set attribute
-            (
-                object
-                .__setattr__(
-                    self, 
-                    __name, 
-                    dict_value
-                )
-            )
-            # 3. Update the visual dict
-            (
-                object
-                .__getattribute__(
-                    self, 
-                    'visual'
-                )
-                .update(
-                    {
-                        __name: dict_value
-                    }
-                )
-            )
-
+        # For attributes of dictionary strings
+        if __name in ['config', 'query', 'dataTransforms', 'filters']:
+            self._set_dict_attrs(__name, __value)
             return None
 
-        # For specific attributes, operate chain set (more than on field matters)
-        # This is important only when a metric is inputed in a visual.
-        if __name in self.dict_fields:
-            # For those attributes, if input is a PBIModel.Measure type,
-            # extract values from input and set values
-            if isinstance(__value, Measure.__bases__):
-                # Measure type delivery Table.Measure pattern
-                table_field_name = __value
-                table_name = __value.split('.')[0]
-                field_name = __value.split('.')[1]                
-                # For those attributes, get the chain of dict path
-                # and replace the template value for input value
-                
-                # Values to replace in template
-                table_to_replace = self.dict_fields[__name]['table']
-                field_to_replace = self.dict_fields[__name]['field']
-                # Loop through all context (paths) in dict
-                for context in parse('$..*').find(self.visual):
-                    # Most part are dict or list, skip it
-                    if not isinstance(context.value, (dict,list)):
-                        # Convert to string
-                        context_str_value = str(context.value)
-                        # Serch for template fields
-                        if re.search(table_to_replace, context_str_value): 
-                            # Replace for input field there
-                            self.__set_value_dict_path_jsonpath_replace(
-                                json_path=context.full_path,
-                                find=table_to_replace,
-                                replace=table_name
-                            )
-                        if re.search(field_to_replace, context_str_value):
-                            # Replace for input field there
-                            self.__set_value_dict_path_jsonpath_replace(
-                                json_path=context.full_path,
-                                find=field_to_replace,
-                                replace=field_name
-                            )
-                return None
-
-        # For value inside the dict_attrs_path, update value after an assignement.
-        # This is important when a visual is created and its values are updated.
-        if __name in self.dict_attrs_path:
-            # 1. Update the path with the value.
-            self.__set_value_dict_path(
-                path=self.dict_attrs_path[__name], 
-                value=__value
-            )
-            # 2. Set the attribute
-            object.__setattr__(self, __name, __value)
-            # 3. Some atributtes impact one more field in dict, so, update it
-            if __name in self.dict_mod_path:
-                for path_ in self.dict_mod_path[__name]:
-                    self.__set_value_dict_path(
-                        path=path_, 
-                        value=__value
-                    )
-            return
+        # For pre set attributes
+        if __name in pre_set:
+            self._set_attrs(__name, __value)
+            return None
+        # For pre set fields attributes
+        if __name in pre_set_fields:
+            self._set_attrs_fields(__name, __value)
+            return None
 
         # For any other attribute, just set it
         object.__setattr__(self, __name, __value)
 
         
     def __repr__(self) -> str:
-        round_x = int(self.x)
-        round_y = int(self.y)
+        round_x = int(self.horizontal)
+        round_y = int(self.vertical)
         round_heigh = int(self.height)
         round_width = int(self.width)
         _ = f'''
         Visual(
         id: {self.id} |
         page: {self.page_name} |
-        x,y: ({round_x},{round_y}) |
+        hor,ver: ({round_x},{round_y}) |
         h,w: ({round_heigh}, {round_width}) |
-        type: {self.type_}
+        type: {self.visual_type}
         )
         '''
         return ' '.join(_.split())
-
-    def __get_dict_path_value(self, path:list[str]):
-        looping = self.visual
-        # Initiate loop
-        for key in path:
-            # Value could be a list, dict or a unique value
-            value = looping.get(key, {})
-            # If value is a list, get the first element
-            if isinstance(value, list):
-                looping = value[0]
-            # Else, if value is a dict, get the dict
-            elif isinstance(value, dict):
-                looping = value
-            # else:
-            #     value = {}
-            # Continue looping util end to get path last element value.
-        
-        return value # type: ignore
     
-    def __set_value_dict_path(self, path:list, value):
-        looping = self.visual
-        last_ = path[-1]
-        for key in path:
-            if key == last_:
-                break
-            _ = looping.get(key)
-            if isinstance(_, list):
-                looping = _[0]
-            elif isinstance(_, dict):
-                looping = _        
-        looping.update({last_:value})
+    def _get_value(self, path:str) -> Any | None:
+        '''Method to retrieve the value of a key in dict using for a JSON path
+
+        Args:
+            path (str): A JSON path to desired value into obejct
+
+        Returns:
+            The value of JSON path can be a int, str, bool or anything else,
+                even none.
+        '''
+        context = parse(f'$.{path}').find(self.visual)
+        if context:
+            return context[0].value
+        else:
+            return None
+    
+    def _update_value(self, path:str, new_value) -> None:
+        '''Method to update the value of a key in a dict using a JSON path
+
+        Args:
+            path (str): A JSON path to desired value into obejct
+        '''
+        context = parse(f'$.{path}').find(self.visual)
+        if context: #may not exist
+            parse(f'$.{path}').update(self.visual, new_value)
+
+        return None
+    
+    def dump_dicts(self) -> None:
+        '''Method to update values in the visual dict.
+
+        The Power BI visual dictionary will be converted to a JSON object.
+        Within the JSON, the bellow keys should be in string format. 
+        This method is called within PBIReport.save_report() and performs this
+        action before saving a new Power BI file.
+        
+        '''
+
+        self.visual.update(
+            {
+                'config': json.dumps(self.config, ensure_ascii=False),
+                'query':json.dumps(self.query, ensure_ascii=False),
+                'dataTransforms': json.dumps(self.dataTransforms, 
+                    ensure_ascii=False),
+                'filters': json.dumps(self.filters, ensure_ascii=False)
+            }
+        )
 
         return None
 
-    def __set_value_dict_path_jsonpath_replace(self, json_path, find, replace):
-        '''
-        '''
-        # Actual value
-        _value = parse(f'$.{json_path}').find(self.visual)[0].value
-        # New value
-        _value = re.sub(find, replace, _value)        
+
+    def export_visual_dicts(self, file_name:str | None = None):
+        '''Method to export dict of visual as a JSON file.
+
+        This method is a convinent way to export and provide a view of visual 
+        dictionary.
+        This divide in 'original' and 'transformed' dictionaries. The 'origina'
+        may contains the visual dictionary as this came from Power BI. It is
+        not garanteed after some tranformations. The 'transformed' is the
+        result of the parsing of string to dictionary object inside this class.
         
-        # Name of field to set value
-        to_update = str(json_path).split('.')[-1]
+        '''
+        # If there is no file_name, it uses a default one.
+        if not file_name:
+            file_name = f'{self.visual_type}_{self.id}.json'
 
-        # Find from where the field comes. It must be a dict.
-        json_path_parent = '$.' + str(json_path) + '.`parent`'
+        # Create a dictionary to export, with original and transformed keys.
+        dict_ = {'original': self.original_visual , 'transformed': self.visual}
 
-        # Get the dict to update
-        parent_dict = parse(json_path_parent).find(self.visual)[0].value
-        parent_dict.update({to_update:_value})
+        export_dict_as_file(dict_, file_name=file_name)
+
+        return None
+
+class BaseVisual(Visual):
+    '''Class to represent the base of any specific visual type
+
+    More than generic class Visual, some visuals have their specificity, namely
+    the attributes. This class works to initiate this specific classes.
     
+    Args:
+        visual_dict (dict): The dictionary that represent a Power BI visual
+        page_name (str | None, optional): The page where the visual is placed. 
+            It can be None, for new visuals. Defaults to ''.
+        page_id (str | None, optional): The heximadecimal id page value. 
+            Defaults to ''.
 
-    def dump_dicts(self) -> None:
-        '''Method to update values in main dict.
+    Attributes:
+        _obj_name (str): The name of viusal type
+        _attrs (dict): A dictonary with set of attributes for the visual type
+        _field_attrs (dict): A dictonary with set of fields attributes for the 
+            visual type
+    '''
+
+    def __init__(self, visual_dict: dict, page_name, page_id) -> None:
+        '''_summary_
+
+        _extended_summary_
+
+        Args:
+           
+        '''
+        
+        super().__init__(visual_dict, page_name, page_id)
+
+        self._obj_name:str
+        self._attrs:dict
+        self._field_attrs:dict
+
+        # Set the exclusives attributes
+        for attr_name, attr_dict in self._attrs.items():
+            full_path = attr_dict.get('full_path', [])
+            object.__setattr__(self, attr_name, self._get_value(full_path[0]))
+
+        # Set the exclusives fields attributes
+        for attr_name, attr_dict in self._field_attrs.items():
+            full_path = attr_dict.get('full_path', [])
+            object.__setattr__(self, attr_name, self._get_value(full_path[0]))
+
+    def _set_attrs(self,__name:str, __value:Any) -> None:
+        '''Setter method for normal attributes for the visual
+
+        The normal attributes are those that have a list of paths to update its
+        values. That means that one attribute is present in differents places
+        inside visual dictionary.
+        This method set the attribute value for the attribute name and for all
+        dictionary keys inside paths list.
+
+        Args:
+            __name (str): The name of attribute
+            __value (Any): The value for the attribute
+        '''
+
+        attr_dict = self._attrs.get(__name, {}) #dictionary of that attribute
+        paths = attr_dict.get('full_path',[]) #list of paths
+        
+        for path in paths:
+            super()._update_value(
+                path=path,
+                new_value=__value
+            )
+
+        # Set the attribute of the object, beside for the paths
+        object.__setattr__(self, __name, __value)
+
+        return None
+    
+    def _set_attrs_fields(self,__name, __value):
+        '''Setter method for fields attributes for the visual
+
+        The fields attributes have a special characteristc where their values 
+        follow the format of `Table.NameField`. Within the visual dictionary, 
+        different keys have this qualified name, while others have only `Table`
+        , and yet others have only `NameField`.
+        This method updates all paths for these three values using the 
+        attribute dictionary, which contains each of the three paths.
+
+        Args:
+            __name (str): The name of attribute
+            __value (Any): The value for the attribute
+
+        '''
+
+        # For those attributes, if input is a PBIModel.Measure type,
+        # extract values from input and set values
+        if not isinstance(__value, Measure.__bases__):
+            raise ValueError("The input should be a Measure")
+        
+        # Measure type delivery Table.NameField pattern
+        qualified_name = __value
+        field_name = qualified_name.split('.')[1]
+        table_name = qualified_name.split('.')[0]
+
+        # For those attributes, get the chain of dict path
+        # and replace the template value for input value
+        attr_dict = self._field_attrs.get(__name, {})
+        paths = attr_dict.get('full_path',[]) #paths for that value
+        field_paths = attr_dict.get('field',[]) #for NameField
+        table_paths =attr_dict.get('table',[]) #for Table
+        qualified_paths =attr_dict.get('qualified',[]) # for Table.NameField
+        
+        # Run for each list of paths
+        for path in paths:
+            self._update_value(path=path,new_value=__value)
+        for path in field_paths:
+            self._update_value(path=path,new_value=field_name)
+        for path in table_paths:
+            self._update_value(path=path,new_value=table_name)
+        for path in qualified_paths:
+            self._update_value(path=path,new_value=qualified_name)
+
+        # Set the attribute of the object, beside for the paths
+        object.__setattr__(self, __name, __value)
+
+    def __setattr__(self, __name, __value):
+        '''Modified to manipulate dictionary keys updating
         
         '''
-        (
-            self.visual
-            .update(
-                {
-                    'config': json.dumps(self.config, ensure_ascii=False),
-                    'query':json.dumps(self.query, ensure_ascii=False),            
-                    'dataTransforms': json.dumps(self.dataTransforms, 
-                                                 ensure_ascii=False)
-                }
-            )
-        )  
+        # For visual attributes
+        if __name in self._attrs:
+            self._set_attrs(__name, __value)
+        # For visual fields attributes
+        if __name in self._field_attrs:
+            self._set_attrs_fields(__name, __value)
+        
+        # For any other attribute, just set it
+        super().__setattr__(__name, __value)
+
+    def __repr__(self) -> str:
+        return super().__repr__().replace('Visual',self._obj_name)
+
+class Card(BaseVisual):
+    '''Representation of Power BI Card visual
+
+    Args:
+        visual_dict (dict): The dictionary that represent a Power BI visual
+        page_name (str | None, optional): The page where the visual is placed. 
+            It can be None, for new visuals. Defaults to ''.
+        page_id (str | None, optional): The heximadecimal id page value. 
+            Defaults to ''.
+    
+    Attributes:
+        __visual (str): Visual name key to use in main dictonary of attributes
+        _obj_name (str): Viusal name to use in __repr__.
+         _attrs (dict): A dictonary with set of attributes for the visual type
+        _field_attrs (dict): A dictonary with set of fields attributes for the 
+            visual type
+    '''
+    __visual = 'card'
+    _obj_name = 'Card'
+
+    _attrs = attributes_visual_dict.get(__visual,{}).get('attrs', {})
+    _field_attrs = attributes_visual_dict.get(__visual,{}).get(
+        'field_attrs', {})
+
+    def __init__(self, visual_dict: dict, page_name, page_id) -> None:
+        super().__init__(visual_dict, page_name, page_id)
+
+class Column(BaseVisual):
+    '''Representation of Power BI Column Chart visual
+
+    Args:
+        visual_dict (dict): The dictionary that represent a Power BI visual
+        page_name (str | None, optional): The page where the visual is placed. 
+            It can be None, for new visuals. Defaults to ''.
+        page_id (str | None, optional): The heximadecimal id page value. 
+            Defaults to ''.
+    
+    Attributes:
+        __visual (str): Visual name key to use in main dictonary of attributes
+        _obj_name (str): Viusal name to use in __repr__.
+         _attrs (dict): A dictonary with set of attributes for the visual type
+        _field_attrs (dict): A dictonary with set of fields attributes for the 
+            visual type
+    '''
+    __visual = 'columnChart'
+    _obj_name = 'Column'
+
+    _attrs = attributes_visual_dict.get(__visual,{}).get('attrs', {})
+    _field_attrs = attributes_visual_dict.get(__visual,{}).get(
+        'field_attrs', {})
+
+    def __init__(self, visual_dict: dict, page_name, page_id) -> None:
+        super().__init__(visual_dict, page_name, page_id)
+
+class Slicer(BaseVisual):
+    '''Representation of Power BI Slicer visual
+
+    Args:
+        visual_dict (dict): The dictionary that represent a Power BI visual
+        page_name (str | None, optional): The page where the visual is placed. 
+            It can be None, for new visuals. Defaults to ''.
+        page_id (str | None, optional): The heximadecimal id page value. 
+            Defaults to ''.
+    
+    Attributes:
+        __visual (str): Visual name key to use in main dictonary of attributes
+        _obj_name (str): Viusal name to use in __repr__.
+         _attrs (dict): A dictonary with set of attributes for the visual type
+        _field_attrs (dict): A dictonary with set of fields attributes for the 
+            visual type
+    '''
+    __visual = 'slicer'
+    _obj_name = 'Slicer'
+
+    _attrs = attributes_visual_dict.get(__visual,{}).get('attrs', {})
+    _field_attrs = attributes_visual_dict.get(__visual,{}).get(
+        'field_attrs', {})
+
+    def __init__(self, visual_dict: dict, page_name, page_id) -> None:
+        super().__init__(visual_dict, page_name, page_id)
+
+class BookmarkSlicer(BaseVisual):
+    '''Representation of Power BI Bookmark Navigator visual
+
+    Args:
+        visual_dict (dict): The dictionary that represent a Power BI visual
+        page_name (str | None, optional): The page where the visual is placed. 
+            It can be None, for new visuals. Defaults to ''.
+        page_id (str | None, optional): The heximadecimal id page value. 
+            Defaults to ''.
+    
+    Attributes:
+        __visual (str): Visual name key to use in main dictonary of attributes
+        _obj_name (str): Viusal name to use in __repr__.
+         _attrs (dict): A dictonary with set of attributes for the visual type
+        _field_attrs (dict): A dictonary with set of fields attributes for the 
+            visual type
+    '''
+    __visual = 'bookmarkNavigator'
+    _obj_name = 'BookmarkSlicer'
+
+    _attrs = attributes_visual_dict.get(__visual,{}).get('attrs', {})
+    _field_attrs = attributes_visual_dict.get(__visual,{}).get(
+        'field_attrs', {})
+
+    def __init__(self, visual_dict: dict, page_name, page_id) -> None:
+        super().__init__(visual_dict, page_name, page_id)
+
+class VisualInitializer():
+    '''Class to initializer a Visual
+
+    Receive a and evaluate its type. For certain types, this class returns
+    a proper class of visual type.
+
+    Args:
+        visual (Visual):
+
+    Returns:
+        A class of visual.
+
+    '''
+
+    __initializer_dict:dict = {
+        'card': Card,
+        'columnChart': Column,
+        'slicer': Slicer,
+        'bookmarkNavigator': BookmarkSlicer
+    } # type: ignore
+
+    def __new__(cls, visual:Visual) -> Visual:
+        if visual.visual_type in cls.__initializer_dict:
+            return ( 
+                cls.__initializer_dict.get(visual.visual_type)(
+                    visual_dict = visual.visual,
+                    page_name = visual.page_name,
+                    page_id = visual.page_id
+                )
+                ) # type: ignore
+        else:
+            return visual
+        
+
+def create_new_visual(
+    visual:Literal[
+        'card', 
+        'column', 
+        'slicer_drop', 
+        'slicer_list', 
+        'bookmark_slicer'],
+    page_name:str,
+    page_id:str,
+    custom_template: dict | None = None
+        ) -> Visual:
+    '''Function to create a new visual from a existing or custom template.
+
+    Here some template are offered to be create for futher customization. 
+    There are four options: card, column chart, slicer (dropdown or list) and 
+    a bookmark navagitor.
+    The return of this funtion is a Viusal object of chossen class that can be
+    inserted inside a report.
+
+    Args:
+        visual ('card', 'column', 'slicer_drop', 'slicer_list', 
+            'bookmark_slicer']): The desired visual.
+        page_name (str): The page name where visual will be placed.
+        page_id (str): The page hexadecimal value where visual will be placed.
+        custom_template (dict | None, optional): A custom visual dictionary can
+            be an input for the new visual. Defaults to None.
+
+    Returns:
+        Visual: A visual object choosen.
+    '''
+
+    if custom_template:
+        visual_dict = custom_template
+    else:
+        visual_dict = charts.VISUAL_TEMPLATE_DICT.get(visual, {})
+    
+    visual_obj = VisualInitializer(
+        Visual(
+            visual_dict=visual_dict, 
+            page_name=page_name,
+            page_id=page_id
+        )
+    )
+
+    # Change the hexadecimal code of the visual
+    visual_obj.id = hex_code()
+
+    return visual_obj

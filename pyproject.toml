@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = 'pypbireport'
-version = '0.3'
+version = '0.2'
 authors = [
     {name='Ismael Miranda', email='ismaelmiranda11@hotmail.com'}
 ]
-description = 'Package to manipulate Power BI reports'
+description = 'Package to manipulate Power BI report and model'
 readme = 'README.md'
 requires-python = '>=3.9'
 classifiers = [

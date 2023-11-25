@@ -10,13 +10,17 @@ import os
 import pandas as pd
 from typing import Any, Literal, Optional, Union
 
-
 from ..constants import dax_code
-from ..functions.functions import get_parent_dir_path, format_column_width, set_attrs_name
+from ..functions.functions import ( 
+    get_parent_dir_path, format_column_width, set_attrs_name )
 
 # Adding the dll for connect to AS in windows
-clr.AddReference(fr'{get_parent_dir_path(__file__)}\ms_dll_scripts\Microsoft.AnalysisServices.Core.dll') # type: ignore
-clr.AddReference(fr'{get_parent_dir_path(__file__)}\ms_dll_scripts\Microsoft.AnalysisServices.Tabular.dll') # type: ignore
+clr.AddReference(fr'{get_parent_dir_path(__file__)}'
+                 r'\ms_dll_scripts\Microsoft.AnalysisServices.Core.dll'
+                 ) # type: ignore
+clr.AddReference(fr'{get_parent_dir_path(__file__)}'
+                 r'\ms_dll_scripts\Microsoft.AnalysisServices.Tabular.dll'
+                 ) # type: ignore
 
 import Microsoft.AnalysisServices as AS # type: ignore
 import Microsoft.AnalysisServices.Tabular as Tabular # type: ignore

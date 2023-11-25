@@ -59,17 +59,49 @@ def format_column_width(df, excel, sheet_name):
 
 def set_attrs_name(_str_, preffix): 
     no_accents = unidecode(_str_).lower()
+
     no_pro_cara = re.sub(
         pattern='[^a-zA-Z0-9_ ]',
         string=no_accents,
         repl=''
     )
-    no_spaces = ( 
+    no_dots = ( 
         '_'
         .join(
             no_pro_cara
+            .split('.')
+        ) 
+    )
+    no_spaces = ( 
+        '_'
+        .join(
+            no_dots
             .split(' ')
         ) 
     )
-    
-    return  preffix + '_' + no_spaces
+
+    return preffix + '_' + no_spaces
+
+def set_attrs_name_visual(_str_): 
+    no_accents = unidecode(_str_).lower()
+
+    no_dots = (
+        '_'
+        .join(
+            no_accents
+            .split('.')
+        ) 
+    )
+    no_parenteses = (
+        '_'
+        .join(
+            '_'
+            .join(
+                no_dots
+                .split('[')
+            )
+            .split(']')
+        )
+    )
+
+    return no_parenteses

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Code Reference &mdash; pypbireport 0.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=b489f392"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to pypbireport’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pypbireport
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Code Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pbix-file">PBIX File</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pypbireport.pbi.pbifile.PBIXFile"><code class="docutils literal notranslate"><span class="pre">PBIXFile</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pypbireport.pbi.pbifile.PBIXFile.pbix_path"><code class="docutils literal notranslate"><span class="pre">PBIXFile.pbix_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pypbireport.pbi.pbifile.PBIXFile.pbix"><code class="docutils literal notranslate"><span class="pre">PBIXFile.pbix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pypbireport.pbi.pbifile.PBIXFile.report_name"><code class="docutils literal notranslate"><span class="pre">PBIXFile.report_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pypbireport.pbi.pbifile.PBIXFile.extract_layout_and_encoding"><code class="docutils literal notranslate"><span class="pre">PBIXFile.extract_layout_and_encoding()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pypbireport.pbi.pbifile.PBIXFile.extract_layout"><code class="docutils literal notranslate"><span class="pre">PBIXFile.extract_layout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pypbireport.pbi.pbifile.PBIXFile.save_report"><code class="docutils literal notranslate"><span class="pre">PBIXFile.save_report()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pypbireport</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Code Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/reference.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="code-reference">
+<h1>Code Reference<a class="headerlink" href="#code-reference" title="Link to this heading"></a></h1>
+<p class="linemarker linemarker-4">Here is the documentation of py-powerbi-report code.</p>
+<section id="pbix-file">
+<h2>PBIX File<a class="headerlink" href="#pbix-file" title="Link to this heading"></a></h2>
+<p class="linemarker linemarker-9">The first module is for to handle PBIX files.
+The layout of a Power BI report comes from a JSON file name <code class="docutils literal notranslate"><span class="pre">Layout</span></code> inside the <code class="docutils literal notranslate"><span class="pre">.pbix</span></code> file.
+This is an example of:</p>
+<p class="linemarker linemarker-13">The class <code class="docutils literal notranslate"><span class="pre">PBIXFile</span></code> means capture the file and delivery it for <code class="docutils literal notranslate"><span class="pre">PBIReport</span></code>
+class to work with.</p>
+<p class="linemarker linemarker-1" id="module-pypbireport.pbi.pbifile">Module for class to work with core file of PBI</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pypbireport.pbi.pbifile.PBIXFile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pypbireport.pbi.pbifile.</span></span><span class="sig-name descname"><span class="pre">PBIXFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pbix_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pypbireport.pbi.pbifile.PBIXFile" title="Link to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Class to work with PBIX File</p>
+<p class="linemarker linemarker-3">This class represent a Power BI report file (extesion of <code class="docutils literal notranslate"><span class="pre">.pbix</span></code>).
+This class has two objectives:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p class="linemarker linemarker-6">Extract the report layout JSON from a PBI report file.</p></li>
+<li><p class="linemarker linemarker-7">Save a new Power BI file with a report layout JSON.</p></li>
+</ol>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p class="linemarker linemarker-11">This isn’t prepare to work with PBIH files yet. The future plan is to
+manipulate report.json file directly.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pbix_path</strong> (<em>str</em>) – Path of a PBIX file.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypbireport.pbi.pbifile.PBIXFile.pbix_path">
+<span class="sig-name descname"><span class="pre">pbix_path</span></span><a class="headerlink" href="#pypbireport.pbi.pbifile.PBIXFile.pbix_path" title="Link to this definition"></a></dt>
+<dd><p class="linemarker linemarker-19">Path of a PBIX file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-21">str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypbireport.pbi.pbifile.PBIXFile.pbix">
+<span class="sig-name descname"><span class="pre">pbix</span></span><a class="headerlink" href="#pypbireport.pbi.pbifile.PBIXFile.pbix" title="Link to this definition"></a></dt>
+<dd><p class="linemarker linemarker-25">Zip file with PBIX files.
+PBIX file are composed by a collection of compressed files. pbix
+variable is an instantiation of the zip file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-29">zipfile.ZipFile</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pypbireport.pbi.pbifile.PBIXFile.report_name">
+<span class="sig-name descname"><span class="pre">report_name</span></span><a class="headerlink" href="#pypbireport.pbi.pbifile.PBIXFile.report_name" title="Link to this definition"></a></dt>
+<dd><p class="linemarker linemarker-33">The name of report. Simple fil name without .pbix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-35">str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pypbireport.pbi.pbifile.PBIXFile.extract_layout_and_encoding">
+<span class="sig-name descname"><span class="pre">extract_layout_and_encoding</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#pypbireport.pbi.pbifile.PBIXFile.extract_layout_and_encoding" title="Link to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Method to return the report layout JSON as a string</p>
+<p class="linemarker linemarker-3">The <cite>Layout</cite> file is a JSON archive that contains all configuration of
+the Power BI report.
+This method reads the file and decodes it to a readable string for
+future serialization into a <cite>dict</cite> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A string that represents the report layout JSON from Layout</dt><dd><p class="linemarker linemarker-11">file.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pypbireport.pbi.pbifile.PBIXFile.extract_layout">
+<span class="sig-name descname"><span class="pre">extract_layout</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pypbireport.pbi.pbifile.PBIXFile.extract_layout" title="Link to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Method to extract the Layout file from pbix and save in folder.</p>
+<p class="linemarker linemarker-3">The <cite>Layout</cite> file is a JSON archive that contains all configuration of
+the Power BI report.
+This method simply extracts it from the PBIX zipped file and saves it
+in the working directory for consulting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None. Save a file with pattern layout_`report_name`.json in folder</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pypbireport.pbi.pbifile.PBIXFile.save_report">
+<span class="sig-name descname"><span class="pre">save_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace_original</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ppr_out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#pypbireport.pbi.pbifile.PBIXFile.save_report" title="Link to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Method to save PBIX file hold as object of this class.</p>
+<dl class="simple">
+<dt>This method works in the following steps:</dt><dd><ol class="arabic simple">
+<li><p class="linemarker linemarker-4">Create a temp file.</p></li>
+<li><p class="linemarker linemarker-5">Passes all files inside PBIX zipped file for temp file, expect
+<code class="docutils literal notranslate"><span class="pre">Report/Layout</span></code>, <code class="docutils literal notranslate"><span class="pre">SecurityBindings</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Content_Types.xml</span></code>.</p></li>
+<li><p class="linemarker linemarker-8">Inserts <code class="docutils literal notranslate"><span class="pre">Report/Layout</span></code> with <code class="docutils literal notranslate"><span class="pre">layout_dict</span></code> written in proper
+encoding, as well as inserts <code class="docutils literal notranslate"><span class="pre">Content_Types.xml</span></code> file</p></li>
+</ol>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p class="linemarker linemarker-11">SecurityBindings will be created after open PBIX file and save it.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layout_dict</strong> (<em>str</em>) – Layout dict (json) of a PBI report.</p></li>
+<li><p><strong>replace_original</strong> (<em>bool</em><em>, </em><em>optional</em>) – If is true, the original report
+will be replaced for a report with modification. Important:
+the original file should be closed. Defaults to False.</p></li>
+<li><p><strong>suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – You might want a suffix to report create by
+module. Defaults to ‘ppr_out’.</p></li>
+<li><p><strong>file_name</strong> (<em>str</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Give desired name for new report.
+Defaults to None.</p></li>
+<li><p><strong>open_file</strong> (<em>bool</em><em>, </em><em>optional</em>) – Not implemented. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Confirmation that report was saved into folder</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to pypbireport’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Ismael Miranda.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
