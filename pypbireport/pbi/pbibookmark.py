@@ -237,7 +237,7 @@ class BookmarkGroup():
 
     def __repr__(self) -> str:
         _ = f'''
-        Bookmark(
+        BookmarkGroup(
         id: \'{self.id}\' |
         name: {self.bookmark_group_name} |
         page: {self.report_section_name} |

@@ -2,13 +2,15 @@
 __pycache__/
 *.py[cod]
 *$py.class
-requirements.txt
+# requirements.txt
 # C extensions
 *.so
 Dashboard Retenção.pbix
 tests
 
 dist/
+
+docs/source/_build
 
 # Distribution / packaging
 .Python

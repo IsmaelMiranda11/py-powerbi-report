@@ -1,6 +1,7 @@
 '''Module for class to work with visualization in PBI
 
 '''
+
 import json
 import pandas as pd
 import copy
@@ -16,7 +17,7 @@ from .pbibookmark import Bookmark, BookmarkGroup
 
 
 class PBIReport(PBIXFile):    
-    '''Class to work with PBI report objects
+    '''Class to represent a Power BI report
 
     Args:
         pbix_path (str): Path of the Power BI report file.
@@ -171,6 +172,10 @@ class PBIReport(PBIXFile):
             .get('bookmarks', []) #get bookmarks key from there
         )
 
+        # Initiate the lists
+        self.bookmarks = PPRList()
+        self.bookmark_groups = PPRList()
+
         # Run over the dicts of bookmarks in bookmark list
         for report_bookmark_dict in report_bookmarks_list:
             # If there is a children key, then it is a group of bookmarks
@@ -249,7 +254,7 @@ class PBIReport(PBIXFile):
     def resume_report_visuals(self, page_name : str ='') -> pd.DataFrame:        
         '''Method to return a dataframe of information of visuals in report
         
-        Agrs:
+        Args:
             page_name (str): The page name that desire retrieve visuals of. 
             
         Returns:

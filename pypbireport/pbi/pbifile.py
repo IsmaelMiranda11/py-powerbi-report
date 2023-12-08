@@ -1,5 +1,10 @@
 '''Module for class to work with core file of PBI
 
+The layout of a Power BI report comes from a JSON file name ``Layout`` inside 
+the ``.pbix`` file.
+
+The class ``PBIXFile`` means capture the file and delivery it for ``PBIReport``
+class to work with.
 '''
 
 import json

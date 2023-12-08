@@ -1,6 +1,7 @@
 
 '''Module for class to work with visuals of Power BI
 '''
+
 import json
 import copy
 from jsonpath_ng.ext import parse
@@ -67,10 +68,11 @@ class Visual():
     by keys like `config`, `query` and `dataTranforms`. After serialization
     of visual dictionary, these came as strings and they should be processed 
     before extract or modify any content.
+    
     Note:
         As a disclaimer, all the work done here is just a reverse engineering 
-            of what Power BI design results. It is totally normal erros occurs
-            and some features being implemented by another way.
+        of what Power BI design results. It is totally normal erros occurs
+        and some features being implemented by another way.
 
     Args:
         visual_dict (dict): The dictionary that represent a Power BI visual
@@ -185,7 +187,7 @@ class Visual():
 
         return None
 
-    def _set_attrs(self,__name:str, __value:Any) -> None:
+    def _set_pre_set_attrs(self,__name:str, __value:Any) -> None:
         '''Setter method for normal attributes for the visual
 
         The normal attributes are those that have a list of paths to update its
@@ -210,7 +212,7 @@ class Visual():
         object.__setattr__(self, __name, __value)
 
 
-    def _set_attrs_fields(self,__name:str, __value:Any) -> None:
+    def _set_pre_set_attrs_fields(self,__name:str, __value:Any) -> None:
         '''Setter method for fields attributes for the visual
 
         The fields attributes have a special characteristc where their values 
@@ -271,11 +273,11 @@ class Visual():
 
         # For pre set attributes
         if __name in pre_set:
-            self._set_attrs(__name, __value)
+            self._set_pre_set_attrs(__name, __value)
             return None
         # For pre set fields attributes
         if __name in pre_set_fields:
-            self._set_attrs_fields(__name, __value)
+            self._set_pre_set_attrs_fields(__name, __value)
             return None
 
         # For any other attribute, just set it
@@ -349,7 +351,7 @@ class Visual():
         return None
 
 
-    def export_visual_dicts(self, file_name:str | None = None):
+    def export_visual_dicts(self, file_name:str | None = None): 
         '''Method to export dict of visual as a JSON file.
 
         This method is a convinent way to export and provide a view of visual 
@@ -358,6 +360,10 @@ class Visual():
         may contains the visual dictionary as this came from Power BI. It is
         not garanteed after some tranformations. The 'transformed' is the
         result of the parsing of string to dictionary object inside this class.
+
+        Args:
+            file_name (str | None, optional): The name of file. 
+                Defaults to None.
         
         '''
         # If there is no file_name, it uses a default one.
@@ -561,6 +567,7 @@ class Column(BaseVisual):
 
     def __init__(self, visual_dict: dict, page_name, page_id) -> None:
         super().__init__(visual_dict, page_name, page_id)
+    
 
 class Slicer(BaseVisual):
     '''Representation of Power BI Slicer visual
@@ -660,7 +667,9 @@ def create_new_visual(
     page_name:str,
     page_id:str,
     custom_template: dict | None = None
-        ) -> Visual:
+    ) -> Visual:
+
+    
     '''Function to create a new visual from a existing or custom template.
 
     Here some template are offered to be create for futher customization. 
@@ -670,8 +679,7 @@ def create_new_visual(
     inserted inside a report.
 
     Args:
-        visual ('card', 'column', 'slicer_drop', 'slicer_list', 
-            'bookmark_slicer']): The desired visual.
+        visual ('str'): The desired visual.
         page_name (str): The page name where visual will be placed.
         page_id (str): The page hexadecimal value where visual will be placed.
         custom_template (dict | None, optional): A custom visual dictionary can
@@ -698,3 +706,27 @@ def create_new_visual(
     visual_obj.id = hex_code()
 
     return visual_obj
+
+def copy_visual(visual:Visual) -> Visual:
+    '''Function to copy an existing visual of report.
+    
+    Use this function when you want to get an existing visual in report and to
+    copy it for futher modification.
+    The return copied visual has no page allocated. Remember to insert it in a 
+    page after copy.
+
+    Args:
+        visual (Visual): A visual object.
+
+    Return:
+        Visual: A copied visual.
+    '''
+    # Deepcopy the visual dictionary.
+    visual_copy_dict = copy.deepcopy(visual.visual)
+    
+    # Create a copy with Visual and VisualInitializer
+    visual_copy = VisualInitializer(Visual(visual_copy_dict))
+    # Change the id of visual
+    visual_copy.id = hex_code()
+
+    return visual_copy

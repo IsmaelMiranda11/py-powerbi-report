@@ -14,15 +14,26 @@ requires-python = '>=3.9'
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Operating System :: Windows",
 ]
 dependencies = [
     "pandas >= 2",
     "pyyaml >= 6",
     "jsonpath-ng==1.5.3",
     "pythonnet==3.0.2",
-    "Unidecode==1.3.6"
+    "Unidecode==1.3.6",
+    "openpyxl >= 3"
 ]
 
-#[project.urls]
-#Homepage = ''
+[tool.setuptools.packages.find]
+# where = ["."]
+include = ["pypbireport", "pypbireport*"]
+exclude = ["tests*"]
+namespaces = true
+
+[tool.setuptools]
+include-package-data = true
+
+[project.urls]
+repository = 'https://github.com/IsmaelMiranda11/py-powerbi-report'
+documentation = 'https://py-powerbi-report.readthedocs.io/en/latest/index.html'
