@@ -10,7 +10,7 @@
 
 ## What
 
-This is a package to edit Power BI through coding.
+With this package, you can edit Power BI through coding.
 
 ## Installation and use
 
@@ -26,7 +26,7 @@ In a Jupyter notebook or Python script, import the module. Using `ppr` is just a
 import pypbireport as ppr
 ```
 
-Instantiate a `PBIReport` or a `PBIModel` object and follow examples in [documentation use case](#).
+Instantiate a `PBIReport` or a `PBIModel` object and follow examples in [documentation use cases](https://py-powerbi-report.readthedocs.io/en/latest/userguide.html).
 
 ```python
 report = ppr.PBIReport(pbix_path)

@@ -11,34 +11,8 @@ from ..constants import bookmarks
 from .pbivisual import Visual
 
 class Bookmark(object):
-    """Class to represent a bookmark in PBI report
-
-    """
-    '''
-        1. Criar um corpo de bookmark para ser adicionado no config da página
-        2. Cada bookmark tem que ser criado individualmente. 
-        3. Bookmarks podem ser agrupados para criar os slicers. Mas por ordem, 
-           primeiro cria-se bookmark e depois adiciona-se no grupo. (Isso que
-           estava programado no create_a_bookmark_group)
-        
-        Criar um corpo de bookmark
-            1. Informações essenciais:
-                ReportSection;
-                TargetVisuals
-                1.1 ReportSection.
-                    a. explorationState, activeSection. Determina qual a página 
-                       que o bookmark afeta
-                    b. explorationState, activeSection, sections, ReportSection.
-                       Aqui ela recebe um dict de visual e o modo que ele aparecerá.
-                1.2 TargetVisuals.
-                    a. explorationState, activeSection, sections, ReportSection,
-                       TargetVisual. Cada visual tem que ser colocado nesse dict
-                       com a configuração 
-                       visual_id:{'singleVisual': {'display': {'mode': ''}}}.
-                       O modo de display será escolhido para como o bookmark vai afetar
-                       cada visual.
-                    b. options, targetVisualNames. Simples lista dos visuais que
-                       o bookmark afeta.
+    ''' Class to represent a bookmark in PBI report
+    
     '''
 
     def __init__(self, bookmark_name:str, 
@@ -190,7 +164,8 @@ class Bookmark(object):
         return ' '.join(_.split())
 
 class BookmarkGroup():
-    ''''''
+    ''' Class to represent a bookmark group in PBI report
+    '''
 
     def __init__(self, bookmark_group_name:str,
         children_list:list[Bookmark],

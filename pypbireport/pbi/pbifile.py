@@ -210,11 +210,10 @@ class PBIXFile():
                 file_name = f'{self.report_name} {suffix}.pbix'
                 if os.path.exists(file_name): # if exists, delete
                     os.remove(file_name)
-
-        try:
+        elif file_name:
+            if os.path.exists(file_name): # if exists, delete
+                os.remove(file_name)
             os.rename(t_name, file_name)
-        except:
-            os.remove(t_name)
 
         # if open_file:
         #     os.system(file_name)

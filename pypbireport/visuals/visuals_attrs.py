@@ -40,6 +40,31 @@ card_attrs_fields : dict[str, dict[str, str | list[str]]] = {
         'field' : ['config.singleVisual.objects.labels[0].properties.color.solid.color.expr.Measure.Property'],
         'table' : ['config.singleVisual.objects.labels[0].properties.color.solid.color.expr.Measure.Expression.SourceRef.Entity'],
         'qualified': []
+    },
+    'field':{
+        'path_name' : 'queryRef',
+        'full_path' : ['config.singleVisual.projections.Values[0].queryRef'],
+        'field' : [
+            'config.singleVisual.prototypeQuery.Select[0].Measure.Property',
+            'config.singleVisual.prototypeQuery.Select[0].NativeReferenceName',
+            'config.singleVisual.prototypeQuery.OrderBy[0].Expression.Measure.Property',
+            'query.Commands[0].SemanticQueryDataShapeCommand.Query.Select[0].Measure.Property',
+            'dataTransforms.queryMetadata.Select[0].Restatement',
+            'dataTransforms.selects[0].displayName',
+            'dataTransforms.selects[0].expr.Measure.Property'
+        ],
+        'table' : [
+            'config.singleVisual.prototypeQuery.From[0].Entity',
+            'query.Commands[0].SemanticQueryDataShapeCommand.Query.From[0].Entity',
+            'dataTransforms.selects[0].expr.Measure.Expression.SourceRef.Entity'
+        ],
+        'qualified': [
+            'config.singleVisual.projections.Values[0].queryRef',
+            'config.singleVisual.prototypeQuery.Select[0].Name',
+            'query.Commands[0].SemanticQueryDataShapeCommand.Query.Select[0].Name',
+            'dataTransforms.queryMetadata.Select[0].Name',
+            'dataTransforms.selects[0].queryName'
+        ]
     }
 }
 
