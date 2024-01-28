@@ -66,3 +66,4 @@ Ismael Miranda
 | 0.1     | Release                                         |
 | 0.1.1   | Bug fix in create_bookmark_slicer() function    |
 | 0.2     | Power BI Model and Power BI visual manipulation |
+| 0.2.1   | Power BI Report peformance improvements         |

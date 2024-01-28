@@ -12,19 +12,19 @@ pre_set : dict[str, dict[str, str | list[str]]]= {
     },
     'horizontal': {
         'path_name' : 'x',
-        'full_path' : ['config.layouts[0].position.x', 'x']
+        'full_path' : ['config.layouts.[0].position.x', 'x']
     },
     'vertical': {
         'path_name' : 'y',
-        'full_path' : ['config.layouts[0].position.y', 'y']
+        'full_path' : ['config.layouts.[0].position.y', 'y']
     },
     'height': {
         'path_name' : 'height',
-        'full_path' : ['config.layouts[0].position.height', 'height']
+        'full_path' : ['config.layouts.[0].position.height', 'height']
     },
     'width': {
         'path_name' : 'width',
-        'full_path' : ['config.layouts[0].position.width', 'width']
+        'full_path' : ['config.layouts.[0].position.width', 'width']
     },
     'visual_type': {
         'path_name' : 'visualType',

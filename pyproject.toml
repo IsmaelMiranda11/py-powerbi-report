@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = 'pypbireport'
-version = '0.2'
+version = '0.2.1'
 authors = [
     {name='Ismael Miranda', email='ismaelmiranda11@hotmail.com'}
 ]

@@ -4,7 +4,7 @@
 
 import json
 import copy
-from jsonpath_ng.ext import parse
+from jsonpath_ng import parse
 from typing import Literal, Any
 
 from ..functions.functions import (export_dict_as_file, 
@@ -39,7 +39,8 @@ class VisualAttributes():
         contexts = parse('$..*').find(visual_dict) # find all path of JSON
 
         valid_contexts = [context for context in contexts
-            if isinstance(context.value, (dict, list)) ] # no dict or list
+            if not isinstance(context.value, (dict, list)) ] # no dict or list
+        self.contexts:list = valid_contexts 
 
         attrs_names = [ set_attrs_name_visual(str(context.full_path))
             for context in valid_contexts ] 
@@ -48,8 +49,8 @@ class VisualAttributes():
         
         full_paths = [ str(context.full_path) for context in valid_contexts ]
 
+        
         self.attributes_dict:dict = {}
-
         for (name, value, path) in zip(attrs_names,attrs_values,full_paths):
             # Put information into the dict
             self.attributes_dict.update(
@@ -131,7 +132,7 @@ class Visual():
         self.query = self.visual.get('query', "{}")
         self.dataTransforms = self.visual.get('dataTransforms', "{}")
         self.filters = self.visual.get('filters', "{}")
-        
+
         # These are preset attributes of any Visual
         self.id:str
         self.horizontal:float
@@ -141,6 +142,19 @@ class Visual():
         self.visual_type:str
         self.tab_order:int
 
+        
+        # Parse all paths inside the visual dict with a proper class.
+        ### Deprecated due perfomance issues 
+        # self.all_attributes:VisualAttributes
+        # object.__setattr__(self, 'all_attributes', 
+        #     VisualAttributes(self.visual))
+
+        # List of json path context
+        contexts = parse('$..*').find(visual_dict) # find all path of JSON
+        valid_contexts = [context for context in contexts
+            if not isinstance(context.value, (dict, list)) ] # no dict or list
+        self.__contexts:list = valid_contexts 
+        
         # Set of attributes. Note:
         # There are two type of attributes, 'normal' and field attributes.
         # Fields attributes are special because great part of its update
@@ -158,10 +172,6 @@ class Visual():
         for attr_name, attr_dict in pre_set_fields.items():
             full_path = attr_dict.get('full_path', [])
             object.__setattr__(self, attr_name, self._get_value(full_path[0]))
-        
-        # Parse all paths inside the visual dict with a proper class.
-        object.__setattr__(self, 'all_attributes', 
-            VisualAttributes(self.visual))
         
     
     def _set_dict_attrs(self, __name:str, __value:Any) -> None:
@@ -310,11 +320,12 @@ class Visual():
             The value of JSON path can be a int, str, bool or anything else,
                 even none.
         '''
-        context = parse(f'$.{path}').find(self.visual)
-        if context:
-            return context[0].value
-        else:
-            return None
+        for context in self.__contexts:
+            if str(context.full_path) == path:
+                return context.value
+
+        return None
+
     
     def _update_value(self, path:str, new_value) -> None:
         '''Method to update the value of a key in a dict using a JSON path
