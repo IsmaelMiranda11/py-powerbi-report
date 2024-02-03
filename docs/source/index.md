@@ -54,6 +54,7 @@ Be free to use this module in your Power BI development and don't hesitate to co
 | 0.1     | Release                                                       |
 | 0.1.1   | Bug fix in create_bookmark_slicer() function                  |
 | 0.2     | Power BI model acess and new objects for visual and bookmarks |
+| 0.2.1   | Power BI Report peformance improvements                       |
 
 
 ## Contents:
