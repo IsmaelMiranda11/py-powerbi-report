@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = 'pypbireport'
-version = '0.2.1'
+version = '0.2.2'
 authors = [
     {name='Ismael Miranda', email='ismaelmiranda11@hotmail.com'}
 ]
@@ -19,9 +19,9 @@ classifiers = [
 dependencies = [
     "pandas >= 2",
     "pyyaml >= 6",
-    "jsonpath-ng==1.5.3",
-    "pythonnet==3.0.2",
-    "Unidecode==1.3.6",
+    "jsonpath-ng >= 1.5.3",
+    "pythonnet >= 3.0.2",
+    "Unidecode >= 1.3.6",
     "openpyxl >= 3"
 ]
 
