@@ -132,7 +132,7 @@ class PBIModel():
         for pbi in processes_dict.get('PBI'):
             name = (
                 pbi.get('MainWindowTitle')[::-1]
-                .split('- Power BI Desktop', 1)
+                .split('- Power BI Desktop'[::-1], 1)
                 [-1][::-1].strip()
             )
             if name == self.report_name:
